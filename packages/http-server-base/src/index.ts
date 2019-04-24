@@ -10,7 +10,7 @@ export * from 'routing-controllers'
 
 export interface HttpConfig {
   // 服务的端口号
-  port: number
+  port?: number
   // 是否为本地开发环境
   isLocal?: boolean
   // 静态资源路径

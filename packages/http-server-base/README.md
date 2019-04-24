@@ -1,7 +1,7 @@
 基于 `routing-controller` 的简易封装，抽出了一些复用的逻辑。  
 
 ```bash
-npm i @blued-core/http-server-base
+npx install-peerdeps @blued-core/http-server-base
 ```
 
 ## 使用方式

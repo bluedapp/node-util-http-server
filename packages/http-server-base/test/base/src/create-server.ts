@@ -4,7 +4,7 @@ import Cache from '@blued-core/cache'
 import RavenClient from '@blued-core/raven-client'
 import StatsdClient from '@blued-core/statsd-client'
 import { NormalConf } from '@blued-core/normal-conf'
-import { createServer } from '../../../dist'
+import { createServer } from '@blued-core/http-server-base'
 
 export function create ({
   port,
@@ -33,12 +33,10 @@ export function create ({
     statsd,
   })
   // 加载 raven
-  const ravenClient = new RavenClient(normalConf, cache)
-  ravenClient.isLocal = isLocal
+  const ravenClient = new RavenClient(normalConf, cache, isLocal)
 
   // 加载 statsd
-  const statsdClient = new StatsdClient(normalConf, cache)
-  statsdClient.isLocal = isLocal
+  const statsdClient = new StatsdClient(normalConf, cache, isLocal)
 
   createServer({
     port,

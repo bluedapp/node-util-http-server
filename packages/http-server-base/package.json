@@ -1,6 +1,6 @@
 {
   "name": "@blued-core/http-server-base",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -27,12 +27,6 @@
     "typescript": "^3.4.4"
   },
   "peerDependencies": {
-    "koa": "^2.7.0",
-    "koa-bodyparser": "^4.2.1",
-    "koa-router": "^7.4.0",
-    "koa-static": "^5.0.0",
-    "reflect-metadata": "^0.1.13",
-    "routing-controllers": "^0.7.7",
     "typescript": "^3.4.4"
   },
   "devDependencies": {
