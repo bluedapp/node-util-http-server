@@ -46,7 +46,8 @@ export default ({
       let logger = null
 
       if (hasLogger) {
-        logger = loggerClient.getLogger(translatePath(context.path))
+        // 添加默认 index 的操作
+        logger = loggerClient.getLogger(translatePath(context.path) || 'index')
       }
 
       const { method, request } = context
