@@ -1,0 +1,14 @@
+{
+  "name": "http-server",
+  "version": "1.0.0",
+  "description": "基于 routing-controllers 的常用逻辑封装",
+  "main": "dist/index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://git.blued.cn/node-util/http-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
