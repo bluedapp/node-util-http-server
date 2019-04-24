@@ -1,0 +1,13 @@
+{
+  "verbose": true,
+  "ignore": ["public/", "node_modules/", "logs/", "*.log"],
+  "events": {
+    "restart": "osascript -e 'display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\"'"
+  },
+  "watch": [
+    "*.js",
+    "*.json",
+    "*.ts"
+  ],
+  "ext": "ts js json jsx scss hbs html ejs css sass"
+}
