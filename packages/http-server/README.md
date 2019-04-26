@@ -14,10 +14,11 @@ createServer({
   ravenUrl: 'sentry.xxx.com',
   statsd: {
     host: '0.0.0.1',
-    port: 1234,
+    port: 12345,
     group: 'test',
     project: 'test-project'
-  }
+  },
+  port: 1234
 })
 
 // 具体的 router 实现
@@ -26,7 +27,7 @@ import { JsonController, Get } from '@blued-core/http-server'
 
 @JsonController('/test')
 export default class {
-  @Get('patha')
+  @Get('/patha')
   get () {
     return 'Hello World'
   }
