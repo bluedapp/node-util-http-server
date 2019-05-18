@@ -52,6 +52,7 @@ statsd|`Object`|-|设置 statsd 上报的配置
 #### statsd 具体配置
 
 option|type|desc
+:--|:--|:--
 host|string|配置的 IP
 port|number|端口号
 group|string|上报数据所属分组
