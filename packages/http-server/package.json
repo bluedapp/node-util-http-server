@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@blued-core/cache": "^1.0.2",
-    "@blued-core/exception-report-client": "^0.0.1",
+    "@blued-core/exception-report-client": "^0.0.2",
     "@blued-core/http-server-base": "^0.0.4",
     "@blued-core/normal-conf": "^0.0.2",
     "@blued-core/performance-client": "^0.0.1",
