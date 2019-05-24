@@ -50,7 +50,7 @@ export function createServer ({
   before,
   after,
   loggerClient,
-  errorReportClient,
+  exceptionReportClient,
   performanceClient,
   port = defaultPort,
   controllersPath = defaultControllersPath,
@@ -66,7 +66,7 @@ export function createServer ({
     before,
     after,
     loggerClient,
-    errorReportClient,
+    exceptionReportClient,
     performanceClient,
   })
 

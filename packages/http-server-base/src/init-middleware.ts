@@ -2,17 +2,17 @@ import { KoaMiddlewareInterface, Middleware } from 'routing-controllers'
 
 import { Context } from 'koa'
 import { LoggerIntl } from '@blued-core/logger-intl'
-import { ErrorReportClientInstance, PerformanceClientInstance } from '@blued-core/client-intl'
+import { ExceptionReportClientInstance, PerformanceClientInstance } from '@blued-core/client-intl'
 import { NotFoundError } from './errors'
 
-type ErrorReportBuilder = () => ErrorReportClientInstance
+type ExceptionReportBuilder = () => ExceptionReportClientInstance
 type PerformanceClientBuilder = () => PerformanceClientInstance
 
 export interface MiddlewareDirver {
   // 日志服务的驱动
   loggerClient?: LoggerIntl,
   // 异常监控处理的驱动
-  errorReportClient?: ErrorReportBuilder,
+  exceptionReportClient?: ExceptionReportBuilder,
   // 性能监控的驱动
   performanceClient?: PerformanceClientBuilder,
 }
@@ -33,11 +33,11 @@ export default ({
   after,
   loggerClient,
   performanceClient,
-  errorReportClient,
+  exceptionReportClient,
 }: MiddlewareConfig & MiddlewareDirver) => {
   const hasLogger = !emptyTypes.includes(loggerClient)
   const hasPerformance = !emptyTypes.includes(performanceClient)
-  const hasErrorReport = !emptyTypes.includes(errorReportClient)
+  const hasExceptionReport = !emptyTypes.includes(exceptionReportClient)
 
   @Middleware({ type: 'before' })
   class ResponseHandler implements KoaMiddlewareInterface {
@@ -115,10 +115,10 @@ export default ({
           statsd.timer(context.path, end - start)
         }
       } catch (e) {
-        // only server side error send to raven
-        if (hasErrorReport && (!e.statusCode || Number(e.statusCode) === internalErrorCode)) {
-          const raven = errorReportClient()
-          raven.captureException(e)
+        // only server side error send to exceptionReport
+        if (hasExceptionReport && (!e.statusCode || Number(e.statusCode) === internalErrorCode)) {
+          const exceptionReport = exceptionReportClient()
+          exceptionReport.captureException(e)
         }
 
         const end = Date.now()
