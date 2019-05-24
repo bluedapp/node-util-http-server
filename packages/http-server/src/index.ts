@@ -1,7 +1,7 @@
 import LoggerClient from '@blued-core/winston-logger'
 import Cache from '@blued-core/cache'
-import RavenClient from '@blued-core/raven-client'
-import StatsdClient from '@blued-core/statsd-client'
+import ExceptionReportClient from '@blued-core/exception-report-client'
+import PerformanceClient from '@blued-core/performance-client'
 import { NormalConf } from '@blued-core/normal-conf'
 import { createServer as _baseCreateServer, HttpConfig } from '@blued-core/http-server-base'
 import { MiddlewareConfig } from '@blued-core/http-server-base/dist/init-middleware'
@@ -12,14 +12,14 @@ export const baseCreateServer = _baseCreateServer
 
 export function createServer ({
   logPath,
-  ravenUrl,
-  statsd,
+  exceptionReportUrl,
+  performanceConfig,
   isLocal,
   ...configs
 }: MiddlewareConfig & HttpConfig & {
   logPath?: string,
-  ravenUrl?: string,
-  statsd?: {
+  exceptionReportUrl?: string,
+  performanceConfig?: {
     host: string,
     port: number,
     group: string,
@@ -35,27 +35,27 @@ export function createServer ({
   }
 
   const normalConf = new NormalConf({
-    raven: ravenUrl,
-    statsd,
+    exceptionReportUrl,
+    performanceConfig,
   })
 
-  let ravenClient: RavenClient | undefined
-  if (ravenUrl) {
+  let exceptionReportClient: ExceptionReportClient | undefined
+  if (exceptionReportUrl) {
   // 加载 raven
-    ravenClient = new RavenClient(normalConf, cache, isLocal)
+    exceptionReportClient = new ExceptionReportClient(normalConf, cache, isLocal)
   }
 
-  let statsdClient: StatsdClient | undefined
+  let performanceClient: PerformanceClient | undefined
 
-  if (statsd) {
+  if (performanceConfig) {
   // 加载 statsd
-    statsdClient = new StatsdClient(normalConf, cache, isLocal)
+    performanceClient = new PerformanceClient(normalConf, cache, isLocal)
   }
 
   _baseCreateServer({
     ...configs,
     loggerClient,
-    errorReportClient: ravenClient ? () => ravenClient.getClient('raven') : undefined,
-    performanceClient: statsdClient ? () => statsdClient.getClient('statsd') : undefined,
+    exceptionReportClient: exceptionReportClient ? () => exceptionReportClient.getClient('exceptionReportUrl') : undefined,
+    performanceClient: performanceClient ? () => performanceClient.getClient('performanceConfig') : undefined,
   })
 }

@@ -11,8 +11,8 @@ import { createServer } from '@blued-core/http-server'
 
 createServer({
   logPath: './log',
-  ravenUrl: 'sentry.xxx.com',
-  statsd: {
+  exceptionReportUrl: 'sentry.xxx.com',
+  performanceConfig: {
     host: '0.0.0.1',
     port: 12345,
     group: 'test',
@@ -46,10 +46,10 @@ export default class {
 option|type|default|desc
 :--|:--|:--|:--
 logPath|`string`|-|设置 log 输出的路径
-ravenUrl|`string`|-|设置 raven 上报的路径
-statsd|`Object`|-|设置 statsd 上报的配置
+exceptionReportUrl|`string`|-|设置异常监控上报的路径
+performanceConfig|`Object`|-|设置性能监控上报的配置
 
-#### statsd 具体配置
+#### performanceConfig 具体配置
 
 option|type|desc
 :--|:--|:--
