@@ -32,7 +32,7 @@ export interface HttpConfig {
 }
 
 const defaultPort = 8000
-const defaultControllersPath = [path.join(path.dirname(process.mainModule.filename), 'controllers')]
+const defaultControllersPath = [path.join(path.dirname(process.mainModule.filename), 'controller')]
 const defaultControllerPattern = '.js,.ts'
 const defaultErroOverriding = {
   ParamRequiredError: {
