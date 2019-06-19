@@ -61,6 +61,14 @@ export function createServer ({
   controllerPattern: defaultControllerPattern,
   erroOverriding: defaultErroOverriding,
 }) {
+  initMiddleware({
+    before,
+    after,
+    loggerClient,
+    exceptionReportClient,
+    performanceClient,
+  })
+
   let filePattern = controllerPattern
 
   // build controllers match pattern
@@ -83,14 +91,6 @@ export function createServer ({
   if (distPath) {
     app.use(serve(distPath))
   }
-
-  initMiddleware({
-    before,
-    after,
-    loggerClient,
-    exceptionReportClient,
-    performanceClient,
-  })
 
   if (middlewareRegsiter) {
     middlewareRegsiter(app)

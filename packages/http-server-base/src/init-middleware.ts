@@ -90,7 +90,7 @@ export default ({
 
         // 如果 Content-Type 不是 json，并且 data 返回值类型也不是 object 类型
         // 则认为是普通文本，不进行处理
-        if (!useJsonResponse && typeof data !== 'object') {
+        if (!useJsonResponse) {
           context.body = data
         } else {
           if (typeof data !== 'object') {
