@@ -3,7 +3,6 @@ import path from 'path'
 import Koa from 'koa'
 import { createKoaServer } from 'routing-controllers'
 import serve from 'koa-static'
-import bodyParser from 'koa-bodyparser'
 import initMiddleware, { MiddlewareConfig, MiddlewareDirver } from './init-middleware'
 
 export * from 'routing-controllers'
@@ -62,14 +61,6 @@ export function createServer ({
   controllerPattern: defaultControllerPattern,
   erroOverriding: defaultErroOverriding,
 }) {
-  initMiddleware({
-    before,
-    after,
-    loggerClient,
-    exceptionReportClient,
-    performanceClient,
-  })
-
   let filePattern = controllerPattern
 
   // build controllers match pattern
@@ -93,7 +84,13 @@ export function createServer ({
     app.use(serve(distPath))
   }
 
-  app.use(bodyParser())
+  initMiddleware({
+    before,
+    after,
+    loggerClient,
+    exceptionReportClient,
+    performanceClient,
+  })
 
   if (middlewareRegsiter) {
     middlewareRegsiter(app)
