@@ -47,7 +47,7 @@ export default ({
 
       if (hasLogger) {
         // 添加默认 index 的操作
-        logger = loggerClient.getLogger(translatePath(context.path) || 'index')
+        logger = loggerClient.getLogger(translatePath(mergeNumber(context.path)) || 'index')
       }
 
       const { method, request } = context
@@ -155,4 +155,8 @@ export default ({
 
 function translatePath (path: string) {
   return path.replace(/^\/|\/$/g, '').replace(/\//g, '-')
+}
+
+function mergeNumber (str: string) {
+  return str.replace(/(^|\/)(\d+)(\/|$)/g, '$1NUM$3')
 }
