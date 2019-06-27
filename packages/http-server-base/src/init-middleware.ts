@@ -43,11 +43,12 @@ export default ({
   class ResponseHandler implements KoaMiddlewareInterface {
     async use(context: Context, next: Function) {
       const start = Date.now()
+      const mergedPath = mergeNumber(context.path)
       let logger = null
 
       if (hasLogger) {
         // 添加默认 index 的操作
-        logger = loggerClient.getLogger(translatePath(mergeNumber(context.path)) || 'index')
+        logger = loggerClient.getLogger(translatePath(mergedPath) || 'index')
       }
 
       const { method, request } = context
@@ -112,7 +113,7 @@ export default ({
 
         if (hasPerformance) {
           const statsd = performanceClient()
-          statsd.timer(context.path, end - start)
+          statsd.timer(mergedPath, end - start)
         }
       } catch (e) {
         // only server side error send to exceptionReport
@@ -136,7 +137,7 @@ export default ({
 
         if (hasPerformance) {
           const statsd = performanceClient()
-          statsd.counter(`${context.path}/error`, 1)
+          statsd.counter(`${mergedPath}/error`, 1)
         }
 
         if (hasLogger) {
