@@ -1,6 +1,6 @@
 {
   "name": "@blued-core/http-server",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -38,7 +38,6 @@
     "eslint": "^6.0.1",
     "eslint-config-blued-typescript": "^1.0.2",
     "eslint-plugin-import": "^2.18.0",
-    "husky": "^2.4.1",
     "mocha": "^6.1.4",
     "nodemon": "^1.19.1",
     "ts-node": "^8.3.0"
