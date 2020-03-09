@@ -1,5 +1,5 @@
+import { Readable } from 'stream'
 import { KoaMiddlewareInterface, Middleware } from 'routing-controllers'
-
 import { Context } from 'koa'
 import { LoggerIntl } from '@blued-core/logger-intl'
 import { ExceptionReportClientInstance, PerformanceClientInstance } from '@blued-core/client-intl'
@@ -89,36 +89,41 @@ export default ({
         context.status = successCode
         const end = Date.now()
 
-        // 如果 Content-Type 不是 json，并且 data 返回值类型也不是 object 类型
-        // 则认为是普通文本，不进行处理
-        if (!useJsonResponse) {
-          if (typeof data === 'object') {
-            context.body = {
+        // 如果是一个可读流，则直接返回，不做处理
+        if (data instanceof Readable) {
+          context.body = data
+        } else {
+          // 如果 Content-Type 不是 json，并且 data 返回值类型也不是 object 类型
+          // 则认为是普通文本，不进行处理
+          if (!useJsonResponse) {
+            if (typeof data === 'object') {
+              context.body = {
+                code: successCode,
+                request_id: requestId,
+                request_time: start,
+                response_time: end,
+                ...data,
+              }
+            } else {
+              context.body = data
+            }
+          } else {
+            if (typeof data !== 'object') {
+              data = {
+                data,
+              }
+            }
+
+            const responseData = {
               code: successCode,
               request_id: requestId,
               request_time: start,
               response_time: end,
               ...data,
             }
-          } else {
-            context.body = data
-          }
-        } else {
-          if (typeof data !== 'object') {
-            data = {
-              data,
-            }
-          }
 
-          const responseData = {
-            code: successCode,
-            request_id: requestId,
-            request_time: start,
-            response_time: end,
-            ...data,
+            context.body = responseData
           }
-
-          context.body = responseData
         }
 
         if (hasPerformance) {
