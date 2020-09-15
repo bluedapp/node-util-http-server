@@ -8,6 +8,20 @@ import { NotFoundError } from './errors'
 type ExceptionReportBuilder = () => ExceptionReportClientInstance
 type PerformanceClientBuilder = () => PerformanceClientInstance
 
+export interface LogRule {
+  // 当此选项为 true 时，则关闭 HTTP 请求日志
+  disable?: boolean,
+  href?: boolean,
+  // 此项可为 true，或者 include 和 exclude 只包含其中一项的对象
+  header?: boolean | {
+    include?: string[],
+    exclude?: string[],
+  }
+  ip?: boolean,
+  method?: boolean,
+  requestBody?: boolean,
+}
+
 export interface MiddlewareDirver {
   // 日志服务的驱动
   loggerClient?: LoggerIntl,
@@ -22,6 +36,8 @@ export interface MiddlewareConfig {
   before?: (ctx: Context) => Promise<any>
   // 一个后置的中间件处理
   after?: (ctx: Context) => Promise<any>
+  // 定义针对请求信息的日志规则
+  logRule?: LogRule
 }
 
 const emptyTypes: any[] = [undefined, null, 0, false, '']
@@ -31,11 +47,13 @@ const internalErrorCode = 500
 export default ({
   before,
   after,
+  logRule,
   loggerClient,
   performanceClient,
   exceptionReportClient,
 }: MiddlewareConfig & MiddlewareDirver) => {
   const hasLogger = !emptyTypes.includes(loggerClient)
+  const hasLogRule = !emptyTypes.includes(logRule)
   const hasPerformance = !emptyTypes.includes(performanceClient)
   const hasExceptionReport = !emptyTypes.includes(exceptionReportClient)
 
@@ -69,9 +87,36 @@ export default ({
         method,
         requestBody,
       }
+
       try {
         // POST 输出 body
-        if (logger) {
+        if (hasLogRule && !logRule.disable) {
+          if (logRule.href) delete logBody.href
+          if (logRule.ip) delete logBody.ip
+          if (logRule.method) delete logBody.method
+          if (logRule.requestBody) delete logBody.requestBody
+
+          if (logRule.header === true) {
+            delete logBody.header
+          } else if (logRule.header) {
+            const tmpHeader: Record<string, any> = {}
+            if (Array.isArray(logRule.header.include)) {
+              for (const k of logRule.header.include) {
+                if (header[k]) {
+                  tmpHeader[k] = header[k]
+                }
+              }
+            } else if (Array.isArray(logRule.header.exclude)) {
+              for (const [k, v] of Object.entries(header)) {
+                if (!logRule.header.exclude.includes(k)) {
+                  tmpHeader[k] = v
+                }
+              }
+            }
+            logBody.header = tmpHeader
+          }
+        }
+        if (logger && (!hasLogRule || !logRule.disable)) {
           logger.access(logBody)
         }
         if (before) {
@@ -80,7 +125,6 @@ export default ({
         await next()
 
         let data = context.body
-
         if (!data) throw new NotFoundError()
 
         // 命中则进行异常处理
@@ -92,38 +136,36 @@ export default ({
         // 如果是一个可读流，则直接返回，不做处理
         if (data instanceof Readable) {
           context.body = data
-        } else {
+        } else if (!useJsonResponse) {
           // 如果 Content-Type 不是 json，并且 data 返回值类型也不是 object 类型
           // 则认为是普通文本，不进行处理
-          if (!useJsonResponse) {
-            if (typeof data === 'object') {
-              context.body = {
-                code: successCode,
-                request_id: requestId,
-                request_time: start,
-                response_time: end,
-                ...data,
-              }
-            } else {
-              context.body = data
-            }
-          } else {
-            if (typeof data !== 'object') {
-              data = {
-                data,
-              }
-            }
-
-            const responseData = {
+          if (typeof data === 'object') {
+            context.body = {
               code: successCode,
               request_id: requestId,
               request_time: start,
               response_time: end,
               ...data,
             }
-
-            context.body = responseData
+          } else {
+            context.body = data
           }
+        } else {
+          if (typeof data !== 'object') {
+            data = {
+              data,
+            }
+          }
+
+          const responseData = {
+            code: successCode,
+            request_id: requestId,
+            request_time: start,
+            response_time: end,
+            ...data,
+          }
+
+          context.body = responseData
         }
 
         if (hasPerformance) {
