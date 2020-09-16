@@ -11,6 +11,8 @@ type PerformanceClientBuilder = () => PerformanceClientInstance
 export interface LogRule {
   // 当此选项为 true 时，则关闭 HTTP 请求日志
   disable?: boolean,
+  // 当 context.path 与此项匹配时则启用过滤规则
+  match?: RegExp,
   href?: boolean,
   // 此项可为 true，或者 include 和 exclude 只包含其中一项的对象
   header?: boolean | {
@@ -20,6 +22,8 @@ export interface LogRule {
   ip?: boolean,
   method?: boolean,
   requestBody?: boolean,
+  // 此项为 true，则不对错误请求的 logBody 属性进行过滤
+  exceptError?: boolean,
 }
 
 export interface MiddlewareDirver {
@@ -37,7 +41,7 @@ export interface MiddlewareConfig {
   // 一个后置的中间件处理
   after?: (ctx: Context) => Promise<any>
   // 定义针对请求信息的日志规则
-  logRule?: LogRule
+  logRule?: LogRule | LogRule[]
 }
 
 const emptyTypes: any[] = [undefined, null, 0, false, '']
@@ -63,7 +67,6 @@ export default ({
       const start = Date.now()
       const mergedPath = mergeNumber(context.path)
       let logger = null
-
       if (hasLogger) {
         // 添加默认 index 的操作
         logger = loggerClient.getLogger(translatePath(mergedPath) || 'index')
@@ -87,36 +90,40 @@ export default ({
         method,
         requestBody,
       }
+      let errorLogBody = logBody
+      let disableAccessLog = false
+      let currentRule: LogRule = null
+      try {
+        if (hasLogRule) {
+          if (Array.isArray(logRule)) {
+            for (const rule of logRule) {
+              if (rule.match && context.path.match(rule.match)) {
+                currentRule = rule
+                break
+              }
+            }
+          } else if (logRule.match) {
+            if (context.path.match(logRule.match)) {
+              currentRule = logRule
+            }
+          } else {
+            currentRule = logRule
+          }
+          disableAccessLog = currentRule && currentRule.disable
+          if (currentRule && currentRule.exceptError) {
+            errorLogBody = { ...logBody }
+          }
+          filterLogBody(logBody, currentRule)
+        }
+      } catch (e) {
+        if (logger) {
+          logger.error(e)
+        }
+      }
 
       try {
         // POST 输出 body
-        if (hasLogRule && !logRule.disable) {
-          if (logRule.href) delete logBody.href
-          if (logRule.ip) delete logBody.ip
-          if (logRule.method) delete logBody.method
-          if (logRule.requestBody) delete logBody.requestBody
-
-          if (logRule.header === true) {
-            delete logBody.header
-          } else if (logRule.header) {
-            const tmpHeader: Record<string, any> = {}
-            if (Array.isArray(logRule.header.include)) {
-              for (const k of logRule.header.include) {
-                if (header[k]) {
-                  tmpHeader[k] = header[k]
-                }
-              }
-            } else if (Array.isArray(logRule.header.exclude)) {
-              for (const [k, v] of Object.entries(header)) {
-                if (!logRule.header.exclude.includes(k)) {
-                  tmpHeader[k] = v
-                }
-              }
-            }
-            logBody.header = tmpHeader
-          }
-        }
-        if (logger && (!hasLogRule || !logRule.disable)) {
+        if (logger && !disableAccessLog) {
           logger.access(logBody)
         }
         if (before) {
@@ -198,7 +205,7 @@ export default ({
         }
 
         if (hasLogger) {
-          logger.error(e, logBody)
+          logger.error(e, errorLogBody)
         }
       } finally {
         if (after) {
@@ -209,6 +216,35 @@ export default ({
   }
 
   return ResponseHandler as any
+}
+
+function filterLogBody(logBody: Record<string, any>, logRule: LogRule) {
+  if (logRule && !logRule.disable) {
+    if (logRule.href) delete logBody.href
+    if (logRule.ip) delete logBody.ip
+    if (logRule.method) delete logBody.method
+    if (logRule.requestBody) delete logBody.requestBody
+
+    if (logRule.header === true) {
+      delete logBody.header
+    } else if (logRule.header) {
+      const tmpHeader: Record<string, any> = {}
+      if (Array.isArray(logRule.header.include)) {
+        for (const k of logRule.header.include) {
+          if (logBody.header[k]) {
+            tmpHeader[k] = logBody.header[k]
+          }
+        }
+      } else if (Array.isArray(logRule.header.exclude)) {
+        for (const [k, v] of Object.entries(logBody.header)) {
+          if (!logRule.header.exclude.includes(k)) {
+            tmpHeader[k] = v
+          }
+        }
+      }
+      logBody.header = tmpHeader
+    }
+  }
 }
 
 function translatePath (path: string) {

@@ -44,13 +44,29 @@ export function create ({
     port,
     loggerClient,
     controllersPath: path.join(__dirname, 'controllers'),
-    logRule: {
+    logRule: [{
       disable: false,
-      href: true,
+      match: /test1/,
+      href: false,
+      ip: true,
+      header: true,
+      exceptError: true,
+    }, {
+      disable: false,
+      match: /^\/test2/,
       header: {
-        include: ['user-agent'],
+        include: ['host'],
       },
-    },
+    }, {
+      disable: false,
+      match: /^\/test3/,
+      header: {
+        exclude: ['host'],
+      },
+    }, {
+      disable: true,
+      match: /^\/test4/,
+    }],
     // errorReportClient () {
     //   return ravenClient.getClient('raven')
     // },
@@ -58,4 +74,19 @@ export function create ({
       return statsdClient.getClient('statsd')
     },
   })
+
+  // createServer({
+  //   port,
+  //   loggerClient,
+  //   controllersPath: path.join(__dirname, 'controllers'),
+  //   logRule: {
+  //     disable: true,
+  //   },
+  //   // errorReportClient () {
+  //   //   return ravenClient.getClient('raven')
+  //   // },
+  //   performanceClient () {
+  //     return statsdClient.getClient('statsd')
+  //   },
+  // })
 }
