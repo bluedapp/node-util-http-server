@@ -55,7 +55,7 @@ export function createServer ({
   _baseCreateServer({
     ...configs,
     loggerClient,
-    exceptionReportClient: exceptionReportClient ? () => exceptionReportClient.getClient('exceptionReportUrl') : undefined,
-    performanceClient: performanceClient ? () => performanceClient.getClient('performanceConfig') : undefined,
+    exceptionReportClient: exceptionReportClient ? () => exceptionReportClient.getClient('exceptionReportUrl') : () => undefined,
+    performanceClient: performanceClient ? () => performanceClient.getClient('performanceConfig') : () => undefined,
   })
 }
