@@ -66,10 +66,9 @@ export default ({
     async use(context: Context, next: Function) {
       const start = Date.now()
       const mergedPath = mergeNumber(context.path)
-      let logger = null
+      let logFilename = null
       if (hasLogger) {
-        // 添加默认 index 的操作
-        logger = loggerClient.getLogger(translatePath(mergedPath) || 'index')
+        logFilename = translatePath(mergedPath) || 'index'
       }
 
       const { method, request } = context
@@ -81,8 +80,7 @@ export default ({
 
       const useJsonResponse = /^(application\/)?json$/i.test(contentType)
 
-      const isGetRequest = method === 'GET'
-      const requestBody = isGetRequest ? context.request.query : context.request.body
+      const requestBody = method === 'GET' ? context.request.query : context.request.body
       const logBody = {
         href,
         header,
@@ -96,12 +94,7 @@ export default ({
       try {
         if (hasLogRule) {
           if (Array.isArray(logRule)) {
-            for (const rule of logRule) {
-              if (rule.match && context.path.match(rule.match)) {
-                currentRule = rule
-                break
-              }
-            }
+            currentRule = logRule.find(r => Boolean(r.match && context.path.match(r.match)))
           } else if (logRule.match) {
             if (context.path.match(logRule.match)) {
               currentRule = logRule
@@ -116,23 +109,29 @@ export default ({
           filterLogBody(logBody, currentRule)
         }
       } catch (e) {
-        if (logger) {
-          logger.error(e)
+        if (logFilename) {
+          const logger = loggerClient.getLogger('middleware_log_rule')
+          if (logger) logger.error(e)
         }
       }
 
       try {
-        // POST 输出 body
-        if (logger && !disableAccessLog) {
-          logger.access(logBody)
-        }
         if (before) {
           await before(context)
         }
         await next()
-
         let data = context.body
-        if (!data) throw new NotFoundError()
+        if (data) {
+          if (!disableAccessLog && logFilename) {
+            const logger = loggerClient.getLogger(logFilename)
+            if (logger) logger.access(logBody)
+          }
+        } else {
+          if (logFilename) {
+            logFilename = 'status_404_not_found'
+          }
+          throw new NotFoundError()
+        }
 
         // 命中则进行异常处理
         if (data && data.name && data.name.endsWith('Error')) throw data
@@ -203,9 +202,9 @@ export default ({
           const statsd = performanceClient()
           statsd.counter(`${mergedPath}/error`, 1)
         }
-
-        if (hasLogger) {
-          logger.error(e, errorLogBody)
+        if (logFilename) {
+          const logger = loggerClient.getLogger(logFilename)
+          if (logger) logger.error(e, errorLogBody)
         }
       } finally {
         if (after) {
@@ -220,29 +219,28 @@ export default ({
 
 function filterLogBody(logBody: Record<string, any>, logRule: LogRule) {
   if (logRule && !logRule.disable) {
-    if (logRule.href) delete logBody.href
-    if (logRule.ip) delete logBody.ip
-    if (logRule.method) delete logBody.method
-    if (logRule.requestBody) delete logBody.requestBody
-
-    if (logRule.header === true) {
-      delete logBody.header
-    } else if (logRule.header) {
-      const tmpHeader: Record<string, any> = {}
+    Object.entries(logRule).forEach(e => {
+      const [k, v] = e
+      if (['ip', 'href', 'method', 'header', 'requestBody'].includes(k)) {
+        if (v === true) { delete logBody[k] }
+      }
+    })
+    if (typeof logRule.header === 'object') {
+      const header: Record<string, any> = {}
       if (Array.isArray(logRule.header.include)) {
         for (const k of logRule.header.include) {
           if (logBody.header[k]) {
-            tmpHeader[k] = logBody.header[k]
+            header[k] = logBody.header[k]
           }
         }
       } else if (Array.isArray(logRule.header.exclude)) {
         for (const [k, v] of Object.entries(logBody.header)) {
           if (!logRule.header.exclude.includes(k)) {
-            tmpHeader[k] = v
+            header[k] = v
           }
         }
       }
-      logBody.header = tmpHeader
+      logBody.header = header
     }
   }
 }

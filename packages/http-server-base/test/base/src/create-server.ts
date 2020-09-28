@@ -66,6 +66,10 @@ export function create ({
     }, {
       disable: true,
       match: /^\/test4/,
+    }, {
+      disable: false,
+      match: /^\/$/,
+      header: true,
     }],
     // errorReportClient () {
     //   return ravenClient.getClient('raven')
