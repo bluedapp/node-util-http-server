@@ -48,6 +48,7 @@ export function createServer ({
   success,
   before,
   after,
+  logRule,
   loggerClient,
   exceptionReportClient,
   performanceClient,
@@ -64,6 +65,7 @@ export function createServer ({
   initMiddleware({
     before,
     after,
+    logRule,
     loggerClient,
     exceptionReportClient,
     performanceClient,

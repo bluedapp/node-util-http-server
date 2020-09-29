@@ -9,4 +9,9 @@ export default class {
   ) {
     return `uid: ${uid}`
   }
+
+  @Get('error')
+  error() {
+    throw new Error('error')
+  }
 }

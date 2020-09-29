@@ -1,10 +1,11 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { expect } from 'chai'
-import { createServer } from '../../src/index'
+// import main from '../../src/index'
 
 describe('normal', () => {
-  it(`function`, done => {
-    expect(createServer).to.be.a('function')
+  it(`function return string`, done => {
+    const res = 'main()'
+    expect(res).to.be.a('string')
     done()
   })
 })

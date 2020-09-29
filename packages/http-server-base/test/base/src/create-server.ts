@@ -1,10 +1,12 @@
 // import HttpServer from '@blued-core/http-server-base'
+import path from 'path'
 import LoggerClient from '@blued-core/winston-logger'
 import Cache from '@blued-core/cache'
-import RavenClient from '@blued-core/raven-client'
+// import RavenClient from '@blued-core/raven-client'
 import StatsdClient from '@blued-core/statsd-client'
 import { NormalConf } from '@blued-core/normal-conf'
-import { createServer } from '@blued-core/http-server-base'
+// import { createServer } from '@blued-core/http-server-base'
+import { createServer } from '../../../dist'
 
 export function create ({
   port,
@@ -33,7 +35,7 @@ export function create ({
     statsd,
   })
   // 加载 raven
-  const ravenClient = new RavenClient(normalConf, cache, isLocal)
+  // const ravenClient = new RavenClient(normalConf, cache, isLocal)
 
   // 加载 statsd
   const statsdClient = new StatsdClient(normalConf, cache, isLocal)
@@ -41,11 +43,54 @@ export function create ({
   createServer({
     port,
     loggerClient,
-    errorReportClient () {
-      return ravenClient.getClient('raven')
-    },
+    controllersPath: path.join(__dirname, 'controllers'),
+    logRule: [{
+      disable: false,
+      match: /test1/,
+      href: false,
+      ip: true,
+      header: true,
+      exceptError: true,
+    }, {
+      disable: false,
+      match: /^\/test2/,
+      header: {
+        include: ['host'],
+      },
+    }, {
+      disable: false,
+      match: /^\/test3/,
+      header: {
+        exclude: ['host'],
+      },
+    }, {
+      disable: true,
+      match: /^\/test4/,
+    }, {
+      disable: false,
+      match: /^\/$/,
+      header: true,
+    }],
+    // errorReportClient () {
+    //   return ravenClient.getClient('raven')
+    // },
     performanceClient () {
       return statsdClient.getClient('statsd')
     },
   })
+
+  // createServer({
+  //   port,
+  //   loggerClient,
+  //   controllersPath: path.join(__dirname, 'controllers'),
+  //   logRule: {
+  //     disable: true,
+  //   },
+  //   // errorReportClient () {
+  //   //   return ravenClient.getClient('raven')
+  //   // },
+  //   performanceClient () {
+  //     return statsdClient.getClient('statsd')
+  //   },
+  // })
 }
