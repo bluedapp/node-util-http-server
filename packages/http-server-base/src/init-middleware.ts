@@ -176,13 +176,13 @@ export default ({
 
         if (hasPerformance) {
           const statsd = performanceClient()
-          statsd.timer(mergedPath, end - start)
+          if (statsd) statsd.timer(mergedPath, end - start)
         }
       } catch (e) {
         // only server side error send to exceptionReport
         if (hasExceptionReport && (!e.statusCode || Number(e.statusCode) === internalErrorCode)) {
           const exceptionReport = exceptionReportClient()
-          exceptionReport.captureException(e)
+          if (exceptionReport) exceptionReport.captureException(e)
         }
 
         const end = Date.now()
@@ -200,7 +200,7 @@ export default ({
 
         if (hasPerformance) {
           const statsd = performanceClient()
-          statsd.counter(`${mergedPath}/error`, 1)
+          if (statsd) statsd.counter(`${mergedPath}/error`, 1)
         }
         if (logFilename) {
           const logger = loggerClient.getLogger(logFilename)
