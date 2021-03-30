@@ -188,12 +188,16 @@ export default ({
         const end = Date.now()
 
         context.status = e.statusCode || internalErrorCode
-        const responseData = {
+        const responseData: Record<string, any> = {
           code: e.errorCode || e.statusCode || internalErrorCode,
           message: e.statusMessage || e.message || 'internal error',
           request_id: requestId,
           request_time: start,
           response_time: end,
+        }
+
+        if (Object.prototype.hasOwnProperty.call(e, 'data')) {
+          responseData.data = e.data
         }
 
         context.body = useJsonResponse ? responseData : JSON.stringify(responseData)
