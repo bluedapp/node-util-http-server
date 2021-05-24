@@ -1,4 +1,4 @@
-import LoggerClient from '@blued-core/winston-logger'
+import LoggerClient from '@blued-core/winston-kafka-logger'
 import Cache from '@blued-core/cache'
 import ExceptionReportClient from '@blued-core/exception-report-client'
 import PerformanceClient from '@blued-core/performance-client'
@@ -10,11 +10,12 @@ export * from '@blued-core/http-server-base'
 
 export const baseCreateServer = _baseCreateServer
 
-export function createServer ({
+export function createServer({
   logPath,
   exceptionReportUrl,
   performanceConfig,
   isLocal,
+  kafkaLogConf,
   ...configs
 }: MiddlewareConfig & HttpConfig & {
   logPath?: string,
@@ -25,13 +26,31 @@ export function createServer ({
     group: string,
     project: string,
   },
-} = { }) {
+  kafkaLogConf?: {
+    hostConfUrl: string,
+    topicConfUrl: string,
+    service: string
+  }
+} = {}) {
   const cache = new Cache()
-
+  let kafka
+  if (kafkaLogConf) {
+    kafka = {
+      cluster: {
+        qconf: kafkaLogConf.hostConfUrl,
+      },
+      topic: {
+        qconf: kafkaLogConf.topicConfUrl,
+      },
+      meta: {
+        service: kafkaLogConf.service,
+      },
+    }
+  }
   let loggerClient: LoggerClient | undefined
   if (logPath) {
-  // 加载 log
-    loggerClient = new LoggerClient(logPath, cache, isLocal)
+    // 加载 log
+    loggerClient = new LoggerClient(logPath, cache, isLocal, { kafka })
   }
 
   const normalConf = new NormalConf({
@@ -41,14 +60,14 @@ export function createServer ({
 
   let exceptionReportClient: ExceptionReportClient | undefined
   if (exceptionReportUrl) {
-  // 加载 raven
+    // 加载 raven
     exceptionReportClient = new ExceptionReportClient(normalConf, cache, isLocal)
   }
 
   let performanceClient: PerformanceClient | undefined
 
   if (performanceConfig) {
-  // 加载 statsd
+    // 加载 statsd
     performanceClient = new PerformanceClient(normalConf, cache, isLocal)
   }
 
