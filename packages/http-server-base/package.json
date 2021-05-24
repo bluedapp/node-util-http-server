@@ -1,6 +1,6 @@
 {
   "name": "@blued-core/http-server-base",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@blued-core/client-intl": "^0.1.0",
-    "@blued-core/logger-intl": "^0.1.0",
+    "@blued-core/winston-kafka-logger": "^0.1.0",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",

@@ -1,7 +1,7 @@
 import { Readable } from 'stream'
 import { KoaMiddlewareInterface, Middleware } from 'routing-controllers'
 import { Context } from 'koa'
-import { LoggerIntl } from '@blued-core/logger-intl'
+import Logger from '@blued-core/winston-kafka-logger'
 import { ExceptionReportClientInstance, PerformanceClientInstance } from '@blued-core/client-intl'
 import { NotFoundError } from './errors'
 
@@ -28,7 +28,7 @@ export interface LogRule {
 
 export interface MiddlewareDirver {
   // 日志服务的驱动
-  loggerClient?: LoggerIntl,
+  loggerClient?: Logger,
   // 异常监控处理的驱动
   exceptionReportClient?: ExceptionReportBuilder,
   // 性能监控的驱动
@@ -76,6 +76,7 @@ export default ({
       const {
         'x-request-id': requestId,
         'content-type': contentType,
+        'x-iris-uid': uid,
       } = header
 
       const useJsonResponse = /^(application\/)?json$/i.test(contentType)
@@ -88,7 +89,6 @@ export default ({
         method,
         requestBody,
       }
-      let errorLogBody = logBody
       let disableAccessLog = false
       let currentRule: LogRule = null
       try {
@@ -103,9 +103,6 @@ export default ({
             currentRule = logRule
           }
           disableAccessLog = currentRule && currentRule.disable
-          if (currentRule && currentRule.exceptError) {
-            errorLogBody = { ...logBody }
-          }
           filterLogBody(logBody, currentRule)
         }
       } catch (e) {
@@ -124,7 +121,18 @@ export default ({
         if (data) {
           if (!disableAccessLog && logFilename) {
             const logger = loggerClient.getLogger(logFilename)
-            if (logger) logger.access(logBody)
+            if (logger) {
+              logger.access({
+                requestBody,
+              }, {
+                uid: String(uid),
+                client_ip: ip,
+                request_type: method,
+                request_url: href,
+                request_header: JSON.stringify(header),
+                request_id: requestId,
+              })
+            }
           }
         } else {
           if (logFilename) {
@@ -207,8 +215,21 @@ export default ({
           if (statsd) statsd.counter(`${mergedPath}/error`, 1)
         }
         if (logFilename) {
-          const logger = loggerClient.getLogger(logFilename)
-          if (logger) logger.error(e, errorLogBody)
+          if (!currentRule || (currentRule && currentRule.exceptError)) {
+            const logger = loggerClient.getLogger(logFilename)
+            if (logger) {
+              logger.error(e, {
+                requestBody,
+              }, {
+                uid: String(uid),
+                client_ip: ip,
+                request_type: method,
+                request_url: href,
+                request_header: JSON.stringify(header),
+                request_id: requestId,
+              })
+            }
+          }
         }
       } finally {
         if (after) {
@@ -249,10 +270,10 @@ function filterLogBody(logBody: Record<string, any>, logRule: LogRule) {
   }
 }
 
-function translatePath (path: string) {
+function translatePath(path: string) {
   return path.replace(/^\/|\/$/g, '').replace(/\//g, '-')
 }
 
-function mergeNumber (str: string) {
+function mergeNumber(str: string) {
   return str.replace(/(^|\/)(\d+)(\/|$)/g, '$1NUM$3')
 }
