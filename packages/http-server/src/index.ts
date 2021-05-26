@@ -52,7 +52,7 @@ export function createServer ({
     performanceClient = new PerformanceClient(normalConf, cache, isLocal)
   }
 
-  _baseCreateServer({
+  return _baseCreateServer({
     ...configs,
     loggerClient,
     exceptionReportClient: exceptionReportClient ? () => exceptionReportClient.getClient('exceptionReportUrl') : () => undefined,
