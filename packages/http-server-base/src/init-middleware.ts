@@ -176,7 +176,7 @@ export default ({
 
         if (hasPerformance) {
           const statsd = performanceClient()
-          if (statsd) statsd.timer(mergedPath, end - start)
+          if (statsd) statsd.timer(`.${method}.${context.status}${mergedPath}`, end - start)
         }
       } catch (e) {
         // only server side error send to exceptionReport
@@ -204,7 +204,7 @@ export default ({
 
         if (hasPerformance) {
           const statsd = performanceClient()
-          if (statsd) statsd.counter(`${mergedPath}/error`, 1)
+          if (statsd) statsd.counter(`.${method}.${context.status}${mergedPath}/error`, 1)
         }
         if (logFilename) {
           const logger = loggerClient.getLogger(logFilename)
