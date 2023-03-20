@@ -1,8 +1,10 @@
 import { create } from './create-server'
 
+const port = 12306
+
 // full feature
 create({
-  port: 12306,
+  port,
   logPath: './logs',
   ravenUrl: 'https://22b8257369274ebb9ea10553df5f04f9@sentry.blued.cn/32',
   statsd: {
@@ -14,6 +16,7 @@ create({
   isLocal: true,
 })
 
+console.log('server running at:', port)
 // // normal
 // createServer({
 //   port: 12307,

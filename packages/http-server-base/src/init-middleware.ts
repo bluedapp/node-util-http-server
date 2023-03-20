@@ -81,7 +81,14 @@ export default ({
       const useJsonResponse = /^(application\/)?json$/i.test(contentType)
 
       const requestBody = method === 'GET' ? context.request.query : context.request.body
-      const logBody = {
+      const logBody: {
+        href: string
+        header: any
+        ip: string
+        method: string
+        requestBody: any
+        internalError?: string
+      } = {
         href,
         header,
         ip,
@@ -188,13 +195,19 @@ export default ({
         const end = Date.now()
 
         context.status = e.statusCode || internalErrorCode
+        const errResMessage = !e.statusCode || Number(e.statusCode) >= internalErrorCode
+          ? 'internal error'
+          : e.statusMessage || e.message || 'internal error'
+
         const responseData: Record<string, any> = {
           code: e.errorCode || e.statusCode || internalErrorCode,
-          message: e.statusMessage || e.message || 'internal error',
+          message: errResMessage,
           request_id: requestId,
           request_time: start,
           response_time: end,
         }
+
+        logBody.internalError = e.statusMessage || e.message || 'internal error'
 
         if (Object.prototype.hasOwnProperty.call(e, 'data')) {
           responseData.data = e.data
