@@ -1,6 +1,6 @@
 {
   "name": "http-server",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "基于 routing-controllers 的常用逻辑封装",
   "main": "dist/index.js",
   "scripts": {},
