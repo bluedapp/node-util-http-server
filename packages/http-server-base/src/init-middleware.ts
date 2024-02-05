@@ -195,9 +195,20 @@ export default ({
         const end = Date.now()
 
         context.status = e.statusCode || internalErrorCode
-        const errResMessage = !e.statusCode || Number(e.statusCode) >= internalErrorCode
-          ? 'internal error'
-          : e.statusMessage || e.message || 'internal error'
+
+        // 超时 sqlerr 等所有未 catch 到的错误全部都是网络错误
+        // 并且这种情况下，statusCode 和 errorCode 都是 500 ,e.name 是 DataRequestError
+        // 详情见 https://github.com/bluedapp/node-util-client/blob/master/packages/http-client/src/index.ts#L206
+
+        // 如果用项目里面的 new ResponseErr 那么 e.name是 responseError
+        // 如果使用项目里面的 new ServiceErr 那么 e.name 是 ServiceError
+        // 如果是直接 new Err 那么 e.name 是 Error
+        let errResMessage = ''
+        if (e.name === 'DataRequestError' && e.statusCode === 500 && e.statusCode === e.errorCode) {
+          errResMessage = '网络错误'
+        } else {
+          errResMessage = e.message
+        }
 
         const responseData: Record<string, any> = {
           code: e.errorCode || e.statusCode || internalErrorCode,
