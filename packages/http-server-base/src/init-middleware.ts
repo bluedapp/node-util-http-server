@@ -200,7 +200,7 @@ export default ({
         // 并且这种情况下，statusCode 和 errorCode 都是 500 ,e.name 是 DataRequestError
         // 详情见 https://github.com/bluedapp/node-util-client/blob/master/packages/http-client/src/index.ts#L206
 
-        // 如果使用项目里面的 new ResponseErr 那么 e.name是 responseError
+        // 如果使用项目里面的 new ResponseErr 那么 e.name是 ResponseError
         // 如果使用项目里面的 new ServiceErr 那么 e.name 是 ServiceError
         // 如果是直接 new Err 那么 e.name 是 Error
 
@@ -220,7 +220,8 @@ export default ({
         ) {
           errResMessage = '网络错误'
         } else {
-          errResMessage = e.message
+          //避免使用 new ServerError 和 使用 new ResponseError 时，不填 message 的情况
+          errResMessage = e.message || '网络错误'
         }
 
         const responseData: Record<string, any> = {
