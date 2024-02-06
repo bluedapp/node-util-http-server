@@ -196,15 +196,28 @@ export default ({
 
         context.status = e.statusCode || internalErrorCode
 
-        // 超时 sqlerr 等所有未 catch 到的错误全部都是网络错误
+        // 被调用方timeout sqlerr 等所有未被 catch 到的错误全部都是网络错误
         // 并且这种情况下，statusCode 和 errorCode 都是 500 ,e.name 是 DataRequestError
         // 详情见 https://github.com/bluedapp/node-util-client/blob/master/packages/http-client/src/index.ts#L206
 
-        // 如果用项目里面的 new ResponseErr 那么 e.name是 responseError
+        // 如果使用项目里面的 new ResponseErr 那么 e.name是 responseError
         // 如果使用项目里面的 new ServiceErr 那么 e.name 是 ServiceError
         // 如果是直接 new Err 那么 e.name 是 Error
+
+        // a.b.c
+        // name: 'TypeError',
+        // message: "Cannot read property 'c' of undefined",
+
+        // name: 'SequelizeDatabaseError',
+        // message: "Table 'blued.XXX' doesn't exist",
+
         let errResMessage = ''
-        if (e.name === 'DataRequestError' && e.statusCode === 500 && e.statusCode === e.errorCode) {
+        const errName = e.name
+        if (
+          errName === 'DataRequestError'
+          || errName === 'TypeError'
+          || errName === 'SequelizeDatabaseError'
+        ) {
           errResMessage = '网络错误'
         } else {
           errResMessage = e.message
@@ -273,10 +286,10 @@ function filterLogBody(logBody: Record<string, any>, logRule: LogRule) {
   }
 }
 
-function translatePath (path: string) {
+function translatePath(path: string) {
   return path.replace(/^\/|\/$/g, '').replace(/\//g, '-')
 }
 
-function mergeNumber (str: string) {
+function mergeNumber(str: string) {
   return str.replace(/(^|\/)(\d+)(\/|$)/g, '$1NUM$3')
 }
