@@ -1,6 +1,6 @@
 {
   "name": "@blued-core/http-server",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "dependencies": {
     "@blued-core/cache": "^1.0.6",
     "@blued-core/exception-report-client": "^0.1.1",
-    "@blued-core/http-server-base": "^0.6.2",
+    "@blued-core/http-server-base": "^0.6.3",
     "@blued-core/normal-conf": "^0.1.1",
     "@blued-core/performance-client": "0.0.5",
     "@blued-core/winston-logger": "^0.1.0"
