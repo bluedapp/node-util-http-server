@@ -35,7 +35,7 @@ const defaultControllersPath = [path.join(path.dirname(process.mainModule.filena
 const defaultControllerPattern = '.js,.ts'
 const defaultErroOverriding = {
   ParamRequiredError: {
-    message: 'missing fields',
+    message: '网络错误',
     name: 'RequiredError',
     statusCode: 403,
     errorCode: 403,
