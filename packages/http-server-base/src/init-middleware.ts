@@ -218,10 +218,10 @@ export default ({
           || errName === 'TypeError'
           || errName === 'SequelizeDatabaseError'
         ) {
-          errResMessage = '网络错误'
+          errResMessage = '未知错误，请检查您的网络'
         } else {
           //避免使用 new ServerError 和 使用 new ResponseError 时，不填 message 的情况
-          errResMessage = e.message || '网络错误'
+          errResMessage = e.message || '未知错误，请检查您的网络'
         }
 
         const responseData: Record<string, any> = {

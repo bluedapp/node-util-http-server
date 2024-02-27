@@ -35,7 +35,7 @@ const defaultControllersPath = [path.join(path.dirname(process.mainModule.filena
 const defaultControllerPattern = '.js,.ts'
 const defaultErroOverriding = {
   ParamRequiredError: {
-    message: '网络错误',
+    message: '未知错误，请检查您的网络',
     name: 'RequiredError',
     statusCode: 403,
     errorCode: 403,
