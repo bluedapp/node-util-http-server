@@ -246,7 +246,11 @@ export default ({
         }
         if (logFilename) {
           const logger = loggerClient.getLogger(logFilename)
-          if (logger) logger.error(e, errorLogBody)
+          if (e.statusCode !== 500) {
+            logger.warn(e, errorLogBody)
+          } else {
+            logger.error(e, errorLogBody)
+          }
         }
       } finally {
         if (after) {
